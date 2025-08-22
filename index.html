@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Catch the Good Tech - Clover 💖</title>
+<style>
+:root{
+  --bg:#0d1330; --card:#1a1f4f; --ink:#ffe6f2; --muted:#f8bde6;
+  --good:#ff8ccf; --bad:#ff6b6b; --accent:#a6b6ff;
+  --pinkGlow:#ffb3e6;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; font-family:"Comic Sans MS", "Poppins", sans-serif;
+  background: radial-gradient(1200px 700px at 50% 0%, #1c214f 0%, var(--bg) 70%);
+  color:var(--ink);
+  display:flex; align-items:center; justify-content:center; padding:16px;
+  overflow:hidden;
+}
+.wrap{ width: min(100%, 980px); }
+
+/* Header panel */
+.panel{ background:var(--card); border:2px solid var(--pinkGlow);
+  border-radius:20px; padding:12px 14px; display:flex;
+  align-items:center; gap:16px; box-shadow:0 8px 18px rgba(255,182,219,.35);
+}
+.badge{ padding:6px 10px; border-radius:999px; background:#251a40;
+  border:1px solid #ffb3e6; font-size:14px; opacity:.95; color:var(--muted)
+}
+button{ appearance:none; border:none;
+  background:linear-gradient(180deg,#ffb3e6,#ff94dc);
+  color:#2d1240; padding:10px 14px; border-radius:14px; font-weight:700;
+  cursor:pointer; box-shadow:0 6px 12px rgba(255,182,219,.4);
+  border:2px solid #ffd6f2; transition:.2s;
+}
+button:hover{ transform:scale(1.05) rotate(-2deg);}
+button:active{ transform:scale(0.95);}
+canvas{ width:100%; height:auto; border-radius:20px; display:block;
+  border:2px solid #ffd6f2;
+  background:linear-gradient(180deg,#201840 0%, #120a24 100%);
+  box-shadow:0 0 18px rgba(255,179,230,.3) inset;
+}
+
+/* Cute sparkly glow for end screen */
+#endScreen h1{
+  font-family:"Poppins",cursive;
+  color:var(--muted);
+  text-shadow:0 0 12px var(--pinkGlow),0 0 22px var(--accent);
+  animation:glow 1.4s infinite alternate;
+}
+@keyframes glow{
+  from{ text-shadow:0 0 6px var(--pinkGlow),0 0 12px var(--accent);}
+  to{ text-shadow:0 0 16px var(--pinkGlow),0 0 32px var(--accent);}
+}
+
+/* Overlay */
+.overlay{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+  background:rgba(15,10,30,.7); z-index:5; animation:fadeIn .5s;
+}
+@keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
+.card{ width:min(92vw,680px); background:var(--card);
+  border:2px solid var(--pinkGlow); border-radius:24px; padding:24px;
+  box-shadow:0 12px 28px rgba(255,182,219,.3)
+}
+
+/* Toast popup bubble */
+.toast{ position:fixed; left:50%; top:16px; transform:translateX(-50%);
+  background:#ffb3e6; color:#2d1240; padding:10px 16px;
+  border-radius:20px; font-weight:700; opacity:0; pointer-events:none;
+  transition:opacity .3s ease, transform .3s ease; z-index:6;
+}
+.toast.show{ opacity:1; transform:translate(-50%,0) scale(1.05); }
+
+/* Mobile buttons */
+.touchbar{ display:none; gap:10px; margin-top:10px; justify-content:center }
+.touchbar button{ min-width:120px }
+@media(max-width:720px){ .touchbar{display:flex} header{flex-direction:column; gap:8px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header style="display:flex; gap:12px; justify-content:space-between; margin-bottom:12px;">
+    <div class="panel meter">
+      <span class="badge">⏱️ Time: <span id="time">60</span>s</span>
+      <span class="badge">⭐ Score: <span id="score">0</span></span>
+      <span class="badge">💖 Streak: <span id="streak">0</span></span>
+      <span class="badge">🏆 High: <span id="high">0</span></span>
+    </div>
+    <div class="panel" style="gap:10px">
+      <button id="startBtn">🌸 Start</button>
+      <button id="pauseBtn">⏸ Pause</button>
+      <button id="resetBtn">↺ Reset</button>
+      <span class="badge">Use ◀ ▶ or A/D</span>
+    </div>
+  </header>
+
+  <canvas id="game" width="960" height="540"></canvas>
+  <div class="touchbar">
+    <button id="leftBtn">◀ Left</button>
+    <button id="rightBtn">Right ▶</button>
+  </div>
+</div>
+
+<!-- Start Screen -->
+<div id="startOverlay" class="overlay" role="dialog" aria-modal="true">
+  <div class="card">
+    <h2>💫 Catch the Good Tech By:Clover Grade-10 💖 </h2>
+    <p style="opacity:.9">Move the basket to <span class="good">catch GOOD</span> tech habits and <span class="bad">avoid BAD</span> ones. Learn ICT safety while you play!</p>
+    <div class="grid" style="margin:12px 0">
+      <div class="tip">✅ Strong Password (12+ chars) +2</div>
+      <div class="tip">🛡️ Antivirus Up‑to‑date +1</div>
+      <div class="tip">♻️ Recycle E‑waste +1</div>
+      <div class="tip">☠️ Malware −2</div>
+      <div class="tip">📧⚠️ Phishing Email −2</div>
+      <div class="tip">🔓 Weak Password (123456) −1</div>
+    </div>
+    <p style="opacity:.85; margin:10px 0">Controls: <strong>◀ ▶</strong> or <strong>A/D</strong>. Mobile: tap buttons. Game lasts 60s, speed increases with streaks. Good luck!</p>
+    <div style="display:flex; gap:10px; justify-content:flex-end">
+      <button id="playNow">Play Now ▶</button>
+    </div>
+  </div>
+</div>
+
+<!-- End Screen -->
+<div id="endScreen" class="overlay" style="display:none;">
+  <div class="card" style="text-align:center; max-width:500px;">
+    <h1>🎀 Game Over 🎀</h1>
+    <p style="font-size:18px;">Your Score: <span id="finalScore">0</span></p>
+    <button id="exitButton">Exit Game 🎀</button>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const canvas=document.getElementById("game"),ctx=canvas.getContext("2d");
+const timeEl=document.getElementById("time"),scoreEl=document.getElementById("score"),
+streakEl=document.getElementById("streak"),highEl=document.getElementById("high"),
+startBtn=document.getElementById("startBtn"),pauseBtn=document.getElementById("pauseBtn"),
+resetBtn=document.getElementById("resetBtn"),startOverlay=document.getElementById("startOverlay"),
+playNow=document.getElementById("playNow"),endScreen=document.getElementById("endScreen"),
+finalScoreEl=document.getElementById("finalScore"),toast=document.getElementById("toast");
+const exitButton=document.getElementById("exitButton");
+
+const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+function cuteBeep(freq=500,dur=0.1,type="sine"){
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.type=type;o.frequency.value=freq;o.connect(g);g.connect(audioCtx.destination);
+  g.gain.value=0.07;o.start();setTimeout(()=>o.stop(),dur*1000);
+}
+
+// Game state
+const state={running:false,paused:false,score:0,time:60,streak:0,
+high:Number(localStorage.getItem("ict_high")||0),
+basket:{x:canvas.width/2,y:canvas.height-40,w:110,h:20,speed:9},items:[],lastTime:0};
+highEl.textContent=state.high;
+
+// Example items
+const GOODS = [
+  {emoji:'🔒', label:'Strong Password', points:+2, color:'#3ddc97', message:'Use 12+ chars & mix symbols!'},
+  {emoji:'🛡️', label:'Antivirus Update', points:+1, color:'#43e0ff', message:'Keep antivirus and OS updated.'},
+  {emoji:'♻️', label:'Recycle E‑waste', points:+1, color:'#9cff57', message:'Dispose gadgets responsibly.'},
+  {emoji:'📶', label:'Secure Wi‑Fi', points:+1, color:'#7aa2ff', message:'Use WPA2/WPA3, change default password.'}
+];
+const BADS = [
+  {emoji:'☠️', label:'Malware', points:-2, color:'#ff6b6b', message:'Don\'t download from unknown sites.'},
+  {emoji:'📧⚠️', label:'Phishing', points:-2, color:'#ff8c42', message:'Check sender + links before clicking.'},
+  {emoji:'🔓', label:'Weak Password', points:-1, color:'#ffa7d1', message:'Avoid 123456 or birthdates.'},
+  {emoji:'📥', label:'Unverified App', points:-1, color:'#ffb347', message:'Install from trusted stores only.'}
+];
+
+function spawnItem(){
+  const src=Math.random()<0.65?GOODS:BADS;
+  const base=src[Math.floor(Math.random()*src.length)];
+  state.items.push({x:Math.random()*(canvas.width-60)+30,y:-20,
+    vy:2.5+Math.random()*2,emoji:base.emoji,points:base.points,
+    color:base.color,r:20});
+}
+
+function drawBackground(){
+  const grd=ctx.createLinearGradient(0,0,0,canvas.height);
+  grd.addColorStop(0,"#1c214f");grd.addColorStop(1,"#0d1330");
+  ctx.fillStyle=grd;ctx.fillRect(0,0,canvas.width,canvas.height);
+}
+
+function drawBasket(){
+  const b=state.basket;
+  ctx.fillStyle="#ffb3e6";
+  ctx.beginPath();ctx.roundRect(b.x-b.w/2,b.y-b.h/2,b.w,b.h,10);
+  ctx.fill();
+}
+
+function drawItem(it){
+  ctx.beginPath();ctx.arc(it.x,it.y,it.r+8,0,Math.PI*2);
+  ctx.fillStyle="rgba(255,182,219,.2)";ctx.fill();
+  ctx.beginPath();ctx.arc(it.x,it.y,it.r,0,Math.PI*2);
+  ctx.fillStyle="#201840";ctx.fill();ctx.lineWidth=2;ctx.strokeStyle=it.color;ctx.stroke();
+  ctx.font="22px Segoe UI Emoji";ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.fillText(it.emoji,it.x,it.y);
+}
+
+function updateHUD(){
+  timeEl.textContent=Math.floor(state.time);
+  scoreEl.textContent=state.score;
+  streakEl.textContent=state.streak;
+  highEl.textContent=state.high;
+}
+
+function showToast(msg){
+  toast.textContent=msg;toast.classList.add("show");
+  setTimeout(()=>toast.classList.remove("show"),1000);
+}
+
+function loop(ts){
+  if(!state.running)return;
+  const dt=(ts-state.lastTime)/1000;state.lastTime=ts;
+  if(!state.paused){
+    state.time-=dt;if(state.time<=0){endGame();return;}
+    const b=state.basket;
+    if(keys.has("arrowleft")||keys.has("a"))b.x-=b.speed;
+    if(keys.has("arrowright")||keys.has("d"))b.x+=b.speed;
+    b.x=Math.max(b.w/2,Math.min(canvas.width-b.w/2,b.x));
+    if(Math.random()<0.03)spawnItem();
+    state.items.forEach(it=>{
+      it.y+=it.vy;
+      if(intersectsCircleRect(it.x,it.y,it.r,b.x-b.w/2,b.y-b.h/2,b.w,b.h)){
+        state.score+=it.points;state.streak+=it.points>0?1:0;
+        cuteBeep(it.points>0?700:200,0.1);
+        showToast(it.emoji+(it.points>0?"+":"")+it.points);
+        it.remove=true;
+      }else if(it.y>canvas.height+it.r)it.remove=true;
+    });
+    state.items=state.items.filter(it=>!it.remove);
+    if(state.score>state.high){state.high=state.score;localStorage.setItem("ict_high",state.high);}
+    updateHUD();
+  }
+  draw();
+  requestAnimationFrame(loop);
+}
+function draw(){drawBackground();drawBasket();state.items.forEach(drawItem);}
+function startGame(){state.running=true;state.paused=false;state.score=0;state.streak=0;state.items=[];
+  state.time=60;startOverlay.style.display="none";state.lastTime=performance.now();loop(state.lastTime);}
+function resetGame(){state.running=false;state.score=0;state.streak=0;state.time=60;state.items=[];
+  updateHUD();startOverlay.style.display="flex";draw();}
+function endGame(){state.running=false;finalScoreEl.textContent=state.score;
+  endScreen.style.display="flex";}
+
+function intersectsCircleRect(cx,cy,r,rx,ry,rw,rh){
+  const testX=Math.max(rx,Math.min(cx,rx+rw));
+  const testY=Math.max(ry,Math.min(cy,ry+rh));
+  const dx=cx-testX,dy=cy-testY;
+  return(dx*dx+dy*dy)<=r*r;
+}
+
+const keys=new Set();
+window.addEventListener("keydown",e=>{keys.add(e.key.toLowerCase());});
+window.addEventListener("keyup",e=>{keys.delete(e.key.toLowerCase());});
+
+startBtn.onclick=()=>{audioCtx.resume();startGame();};
+playNow.onclick=()=>{audioCtx.resume();startGame();};
+resetBtn.onclick=()=>{resetGame();};
+pauseBtn.onclick=()=>{state.paused=!state.paused;};
+exitButton.onclick=()=>{endScreen.style.display="none";startOverlay.style.display="flex";};
+
+draw();
+</script>
+</body>
+</html>
