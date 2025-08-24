@@ -151,17 +151,45 @@ function updateBasket(){
 
 function loop(ts){
   if(!state.running) return;
-  const dt=(ts-state.lastTime)/1000; state.lastTime=ts;
+  const dt=(ts-state.lastTime)/1000; 
+  state.lastTime=ts;
+
   if(!state.paused){
-    state.time-=dt; if(state.time<=0){endGame(); return;}
+    state.time-=dt; 
+    if(state.time<=0){endGame(); return;}
+
     updateBasket();
-    if(Math.random()<0.03) spawnItem();
-    state.items.forEach(it=>{it.y+=it.vy; const b=state.basket; if(intersectsCircleRect(it.x,it.y,it.r,b.x-b.w/2,b.y-b.h/2,b.w,b.h)){state.score+=it.points; state.streak+=it.points>0?1:0; cuteBeep(it.points>0?700:200,0.1); showToast(it.emoji+(it.points>0?"+":"")+it.points); it.remove=true;} else if(it.y>canvas.height+it.r) it.remove=true;});
+
+    // 🎯 Progressive difficulty: spawn chance increases as time goes down
+    let spawnRate = 0.03 + (60 - state.time) * 0.0015; 
+    if(Math.random()<spawnRate) spawnItem();
+
+    // Make items fall faster as game progresses
+    state.items.forEach(it=>{
+      it.y += it.vy * (1 + (60 - state.time) * 0.015); 
+      const b=state.basket;
+      if(intersectsCircleRect(it.x,it.y,it.r,b.x-b.w/2,b.y-b.h/2,b.w,b.h)){
+        state.score+=it.points; 
+        state.streak+=it.points>0?1:0;
+        cuteBeep(it.points>0?700:200,0.1);
+        showToast(it.emoji+(it.points>0?"+":"")+it.points);
+        it.remove=true;
+      } else if(it.y>canvas.height+it.r){
+        it.remove=true;
+      }
+    });
+
     state.items=state.items.filter(it=>!it.remove);
-    if(state.score>state.high){state.high=state.score;localStorage.setItem("ict_high",state.high);}
+    if(state.score>state.high){
+      state.high=state.score;
+      localStorage.setItem("ict_high",state.high);
+    }
     updateHUD();
   }
-  drawBackground(); drawBasket(); state.items.forEach(drawItem);
+
+  drawBackground(); 
+  drawBasket(); 
+  state.items.forEach(drawItem);
   requestAnimationFrame(loop);
 }
 
@@ -175,3 +203,4 @@ drawBackground(); drawBasket();
 </script>
 </body>
 </html>
+
